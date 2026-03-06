@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { useState, memo } from "react";
 import {
   ComposableMap,
   Geographies,
@@ -16,42 +16,95 @@ const isoMap: Record<string, string> = {
 };
 
 const WorldMap = () => {
-  const getFollowers = (isoCode: string) => {
-    const found = countryFollowers.find((c) => isoMap[c.code] === isoCode);
-    return found?.followers || 0;
+  const [tooltip, setTooltip] = useState<{
+    name: string;
+    followers: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const getCountryData = (isoCode: string) => {
+    return countryFollowers.find((c) => isoMap[c.code] === isoCode);
+  };
+
+  const maxFollowers = Math.max(...countryFollowers.map((c) => c.followers));
+
+  const getFillColor = (followers: number) => {
+    const ratio = followers / maxFollowers;
+    // From light orange to deep orange
+    const lightness = 75 - ratio * 35; // 75% to 40%
+    const saturation = 60 + ratio * 35; // 60% to 95%
+    return `hsl(32, ${saturation}%, ${lightness}%)`;
   };
 
   return (
-    <div className="w-full pointer-events-none select-none">
+    <div className="relative w-full">
       <ComposableMap
         projection="geoMercator"
-        projectionConfig={{ scale: 120, center: [0, 30] }}
+        projectionConfig={{ scale: 140, center: [0, 30] }}
         className="w-full h-auto"
-        style={{ maxHeight: 360 }}
+        style={{ maxHeight: 440 }}
       >
         <Geographies geography={GEO_URL}>
           {({ geographies }) =>
             geographies
               .filter((geo) => geo.id !== ANTARCTICA_CODE)
               .map((geo) => {
-                const followers = getFollowers(geo.id);
-                const hasFollowers = followers > 0;
+                const data = getCountryData(geo.id);
+                const hasFollowers = !!data;
+                const fill = hasFollowers
+                  ? getFillColor(data.followers)
+                  : "hsl(220, 10%, 82%)";
+                const hoverFill = hasFollowers
+                  ? getFillColor(data.followers).replace(/(\d+)%\)$/, (_, l) => `${Math.max(Number(l) - 8, 30)}%)`)
+                  : "hsl(220, 10%, 75%)";
+
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
+                    onMouseEnter={(e) => {
+                      if (hasFollowers) {
+                        const svg = (e.target as SVGElement).closest("svg");
+                        const rect = svg?.getBoundingClientRect();
+                        setTooltip({
+                          name: data.country,
+                          followers: data.followers,
+                          x: e.clientX - (rect?.left || 0),
+                          y: e.clientY - (rect?.top || 0),
+                        });
+                      }
+                    }}
+                    onMouseMove={(e) => {
+                      if (hasFollowers) {
+                        const svg = (e.target as SVGElement).closest("svg");
+                        const rect = svg?.getBoundingClientRect();
+                        setTooltip((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                x: e.clientX - (rect?.left || 0),
+                                y: e.clientY - (rect?.top || 0),
+                              }
+                            : null
+                        );
+                      }
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
                     style={{
                       default: {
-                        fill: hasFollowers ? "hsl(220, 70%, 50%)" : "hsl(220, 10%, 75%)",
+                        fill,
                         stroke: "hsl(0, 0%, 100%)",
                         strokeWidth: 0.5,
                         outline: "none",
+                        cursor: hasFollowers ? "pointer" : "default",
                       },
                       hover: {
-                        fill: hasFollowers ? "hsl(220, 70%, 50%)" : "hsl(220, 10%, 75%)",
+                        fill: hoverFill,
                         stroke: "hsl(0, 0%, 100%)",
                         strokeWidth: 0.5,
                         outline: "none",
+                        cursor: hasFollowers ? "pointer" : "default",
                       },
                       pressed: { outline: "none" },
                     }}
@@ -61,6 +114,18 @@ const WorldMap = () => {
           }
         </Geographies>
       </ComposableMap>
+
+      {tooltip && (
+        <div
+          className="absolute pointer-events-none bg-card text-card-foreground shadow-lg rounded-lg px-3 py-2 text-sm z-50 border border-border"
+          style={{ left: tooltip.x + 12, top: tooltip.y - 44 }}
+        >
+          <p className="font-semibold">{tooltip.name}</p>
+          <p className="text-muted-foreground">
+            {tooltip.followers.toLocaleString()} seguidores
+          </p>
+        </div>
+      )}
     </div>
   );
 };
