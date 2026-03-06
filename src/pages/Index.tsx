@@ -12,10 +12,8 @@ const Index = () => {
         </h1>
 
         {/* World Map */}
-        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-          <div className="bg-secondary p-4 md:p-6">
-            <WorldMap />
-          </div>
+        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden p-4 md:p-6">
+          <WorldMap />
         </div>
 
         {/* Age + Gender Charts */}
