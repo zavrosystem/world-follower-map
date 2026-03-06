@@ -41,7 +41,7 @@ const WorldMap = () => {
     <div className="relative w-full">
       <ComposableMap
         projection="geoMercator"
-        projectionConfig={{ scale: 140, center: [0, 30] }}
+        projectionConfig={{ scale: 140, center: [0, 35] }}
         className="w-full h-auto"
         style={{ maxHeight: 440 }}
       >
