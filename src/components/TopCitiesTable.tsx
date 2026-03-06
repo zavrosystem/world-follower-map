@@ -26,20 +26,13 @@ const TopCitiesTable = () => {
                       : "hsl(220, 14%, 80%)",
                 }}
               />
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-card-foreground truncate">
-                  {city.city}, {city.country}
-                </p>
-              </div>
+              <p className="text-sm font-medium text-card-foreground truncate">
+                {city.city}, {city.country}
+              </p>
             </div>
-            <div className="text-right flex-shrink-0 ml-4">
-              <span className="text-sm font-semibold text-card-foreground">
-                {city.percentage}%
-              </span>
-              <span className="text-xs text-muted-foreground ml-2">
-                {city.followers.toLocaleString()}
-              </span>
-            </div>
+            <span className="text-sm font-semibold text-card-foreground flex-shrink-0 ml-4">
+              {city.followers.toLocaleString()}
+            </span>
           </div>
         ))}
       </div>
