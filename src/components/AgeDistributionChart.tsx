@@ -70,6 +70,7 @@ const AgeDistributionChart = () => {
               border: "1px solid hsl(220, 14%, 90%)",
               fontSize: 12,
             }}
+            cursor={false}
           />
           <Bar dataKey="value" fill={barColor} radius={[6, 6, 0, 0]} />
         </BarChart>
